@@ -1,0 +1,169 @@
+CREATE TABLE Users (
+    UserID INT PRIMARY KEY,
+    FullName VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Students (
+    UserID INT PRIMARY KEY,
+    Programme VARCHAR(255) NOT NULL,
+    EnrollmentYear INT NOT NULL,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+
+CREATE TABLE Staff (
+    UserID INT PRIMARY KEY,
+    Department VARCHAR(10) NOT NULL,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID),
+    CHECK (Department IN ('ABE', 'EECS', 'ITM', 'CBH', 'SCI'))
+);
+
+CREATE TABLE Friends (
+    UserID1 INT NOT NULL,
+    UserID2 INT NOT NULL,
+    PRIMARY KEY (UserID1, UserID2),
+    FOREIGN KEY (UserID1) REFERENCES Users(UserID),
+    FOREIGN KEY (UserID2) REFERENCES Users(UserID)
+);
+
+CREATE TABLE Posts (
+    PostURL VARCHAR(255) PRIMARY KEY,
+    UserID INT NOT NULL,
+    Title VARCHAR(255),
+    Timestamp TIMESTAMP NOT NULL,
+    Place VARCHAR(255),
+    BodyText TEXT,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID),
+    UNIQUE (UserID, Timestamp)
+);
+
+CREATE TABLE PostTags (
+    PostURL VARCHAR(255) NOT NULL,
+    Tag VARCHAR(50) NOT NULL,
+    PRIMARY KEY (PostURL, Tag),
+    FOREIGN KEY (PostURL) REFERENCES Posts(PostURL)
+);
+
+CREATE TABLE Attachments (
+    PostURL VARCHAR(255) NOT NULL,
+    AttachmentIndex INT NOT NULL,
+    FileExtension VARCHAR(10) NOT NULL,
+    FileSize INT NOT NULL,
+    PRIMARY KEY (PostURL, AttachmentIndex),
+    FOREIGN KEY (PostURL) REFERENCES Posts(PostURL),
+    CHECK (AttachmentIndex >= 1),
+    CHECK (FileExtension IN ('jpg', 'mp4', 'm4a', 'pdf'))
+);
+
+CREATE TABLE Likes (
+    PostURL VARCHAR(255) NOT NULL,
+    UserID INT NOT NULL,
+    Timestamp TIMESTAMP NOT NULL,
+    PRIMARY KEY (PostURL, UserID),
+    FOREIGN KEY (PostURL) REFERENCES Posts(PostURL),
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+
+CREATE TABLE Events (
+    EventID INT PRIMARY KEY,
+    UserID INT NOT NULL,
+    Title VARCHAR(255) NOT NULL,
+    Place VARCHAR(255) NOT NULL,
+    StartTime TIMESTAMP NOT NULL,
+    EndTime TIMESTAMP NOT NULL,
+    Duration INT NOT NULL,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID),
+    CHECK (StartTime <= EndTime)
+);
+
+CREATE TABLE Attendees (
+    EventID INT NOT NULL,
+    UserID INT NOT NULL,
+    PRIMARY KEY (EventID, UserID),
+    FOREIGN KEY (EventID) REFERENCES Events(EventID),
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+
+CREATE TABLE Subscriptions (
+    SubscriptionID INT PRIMARY KEY,
+    UserID INT NOT NULL,
+    DateOfPayment DATE NOT NULL,
+    PaymentMethod VARCHAR(20) NOT NULL,
+    ExpiryDate DATE NOT NULL,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID),
+    CHECK (PaymentMethod IN ('Klarna', 'Swish', 'Card', 'Bitcoin'))
+);
+
+INSERT INTO Users (UserID, FullName) VALUES 
+(1, 'Alice Smith'),
+(2, 'Bob Jones'),
+(3, 'Charlie Brown'),
+(4, 'Diana Prince'),
+(5, 'Evan Wright'),
+(6, 'Fiona Gallagher');
+
+INSERT INTO Students (UserID, Programme, EnrollmentYear) VALUES 
+(1, 'Computer Science', 2024),
+(2, 'Mechanical Engineering', 2023),
+(3, 'Information Technology', 2025),
+(4, 'Electrical Engineering', 2024);
+
+INSERT INTO Staff (UserID, Department) VALUES 
+(4, 'EECS'),
+(5, 'ITM'),
+(6, 'ABE');
+
+INSERT INTO Friends (UserID1, UserID2) VALUES 
+(1, 2), (2, 1),
+(1, 3), (3, 1),
+(2, 3), (3, 2),
+(4, 5), (5, 4);
+
+INSERT INTO Posts (PostURL, UserID, Timestamp, Title, Place, BodyText) VALUES 
+('kthsocial/post1', 1, '2026-11-02 10:00:00', 'Hello World', 'Campus', 'This is my first post with body text.'),
+('kthsocial/post2', 2, '2026-11-02 11:00:00', 'Check out this picture', NULL, NULL),
+('kthsocial/post3', 3, '2026-11-02 12:00:00', 'Cool video', 'Library', NULL);
+
+INSERT INTO PostTags (PostURL, Tag) VALUES 
+('kthsocial/post1', 'Introduction'),
+('kthsocial/post1', 'KTH'),
+('kthsocial/post2', 'Photography');
+
+INSERT INTO Likes (PostURL, UserID, Timestamp) VALUES 
+('kthsocial/post1', 2, '2026-11-02 10:05:00'),
+('kthsocial/post1', 3, '2026-11-02 10:06:00'),
+('kthsocial/post2', 1, '2026-11-02 11:10:00'),
+('kthsocial/post3', 1, '2026-11-02 12:15:00');
+
+INSERT INTO Attachments (PostURL, AttachmentIndex, FileExtension, FileSize) VALUES 
+('kthsocial/post2', 1, 'jpg', 2048),
+('kthsocial/post3', 1, 'mp4', 15000);
+
+INSERT INTO Events (EventID, UserID, Title, Place, StartTime, EndTime, Duration) VALUES 
+(101, 1, 'Study Session', 'KTH Library', '2026-11-05 14:00:00', '2026-11-05 16:00:00', 120);
+
+INSERT INTO Attendees (EventID, UserID) VALUES 
+(101, 2),
+(101, 3);
+
+INSERT INTO Subscriptions (SubscriptionID, UserID, DateOfPayment, PaymentMethod, ExpiryDate) VALUES 
+(1, 1, '2026-10-01', 'Swish', '2026-10-31'),
+(2, 1, '2026-11-01', 'Swish', '2026-12-01'),
+(3, 2, '2026-11-02', 'Card', '2026-12-02'),
+(4, 3, '2026-11-02', 'Klarna', '2026-12-02'),
+(5, 4, '2026-11-02', 'Bitcoin', '2026-12-02'),
+(6, 5, '2026-11-02', 'Card', '2026-12-02');
+
+SELECT FullName FROM Users;
+
+SELECT * FROM Students;
+SELECT * FROM Staff;
+
+SELECT * FROM Friends;
+
+SELECT * FROM Posts;
+
+SELECT * FROM Events;
+
+SELECT * FROM Subscriptions;
+
+SELECT * FROM Attachments WHERE FileExtension = 'mp4';
