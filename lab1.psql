@@ -91,6 +91,7 @@ CREATE TABLE Subscriptions (
     ExpiryDate DATE NOT NULL,
     FOREIGN KEY (UserID) REFERENCES Users(UserID),
     CHECK (PaymentMethod IN ('Klarna', 'Swish', 'Card', 'Bitcoin'))
+    -- CHECK FÖR ExpiryDate
 );
 
 INSERT INTO Users (UserID, FullName) VALUES 

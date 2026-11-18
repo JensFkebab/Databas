@@ -7,7 +7,6 @@ CREATE TABLE Employee (
     ID INT PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
     PhoneNr VARCHAR(20) NOT NULL,
-    StartDate DATE NOT NULL,
     DepartmentName VARCHAR(255) NOT NULL,
     MentorID INT UNIQUE,
     FOREIGN KEY (DepartmentName) REFERENCES Department(DepartmentName),
@@ -27,6 +26,8 @@ CREATE TABLE Nurse (
     FOREIGN KEY (ID) REFERENCES Employee(ID)
 );
 
+-- ADELA
+
 CREATE TABLE Patient (
     ID INT PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
@@ -34,6 +35,21 @@ CREATE TABLE Patient (
     Diagnosises TEXT NOT NULL,
     DoctorID INT NOT NULL,
     FOREIGN KEY (DoctorID) REFERENCES Doctor(ID)
+);
+
+CREATE TABLE Treating (
+    PatientID INT NOT NULL,
+    DoctorID INT NOT NULL,
+    FOREIGN KEY (PatientID) REFERENCES Patient(ID),
+    FOREIGN KEY (DoctorID) REFERENCES Doctor(ID)
+);
+
+CREATE TABLE WorksAt (
+    EmployeeID INT NOT NULL,
+    DepartmentName VARCHAR(255) NOT NULL,
+    StartDate INT NOT NULL,
+    FOREIGN KEY (EmployeeID) REFERENCES Employee(ID),
+    FOREIGN KEY (DepartmentName) REFERENCES Department(DepartmentName)
 );
 
 INSERT INTO Department (DepartmentName, BuildingNr) VALUES
@@ -58,3 +74,13 @@ INSERT INTO Nurse (ID, Degree) VALUES
 INSERT INTO Patient (ID, Name, Age, Diagnosises, DoctorID) VALUES
 (100, 'John Doe', 45, 'Hypertension', 1),
 (101, 'Jane Smith', 30, 'Migraine', 2);
+
+INSERT INTO Treating (PatientID, DoctorID) VALUES
+(100, 1),
+(101, 2);
+
+INSERT INTO WorksAt (EmployeeID, DepartmentName, StartDate) VALUES
+(1, 'Cardiology', 2020),
+(2, 'Neurology', 2021),
+(3, 'Cardiology', 2019),
+(4, 'Emergency', 2022);
