@@ -29,8 +29,8 @@ CREATE TABLE Post(
        BodyText TEXT
 );
 
-CREATE TABLE PostTag
-       (PostURL VARCHAR(100),
+CREATE TABLE PostTag( 
+       PostURL VARCHAR(100),
        Tag varchar(50),
        PRIMARY KEY (PostURL, Tag),
        CONSTRAINT id
@@ -77,110 +77,3 @@ CREATE TABLE Attachment(
        FileSize INTEGER,
        PRIMARY KEY (PostURL, AttachmentIndex)
 );
-
-SELECT
-    p.Title AS title,
-    string_agg(pt.Tag, ', ') AS tags
-FROM Post p
-LEFT JOIN PostTag pt ON p.PostURL = pt.PostURL
-GROUP BY p.PostURL, p.Title
-ORDER BY p.Title ASC;
-
-WITH RankedPosts AS (
-    SELECT
-        p.PostURL AS posturl,
-        p.Title AS title,
-        RANK() OVER (ORDER BY COUNT(l.UserID) DESC) AS rank
-    FROM Post p
-    JOIN PostTag pt ON p.PostURL = pt.PostURL
-    LEFT JOIN Likes l ON p.PostURL = l.PostURL
-    WHERE pt.Tag = '#leadership'
-    GROUP BY p.PostURL, p.Title
-)
-SELECT
-    posturl,
-    title,
-    rank
-FROM RankedPosts
-WHERE rank <= 5
-ORDER BY rank ASC, title ASC;
-
-SELECT
-    u.name,
-    COUNT(l.UserID) >= 50 AS received_likes
-FROM Users u
-JOIN Post p ON u.UserID = p.UserID
-LEFT JOIN Likes l ON p.PostURL = l.PostURL
-WHERE date_part('month', p.Timestamp) = 3
-GROUP BY u.UserID, u.name
-ORDER BY u.name ASC;
-
-WITH Registrations AS (
-    SELECT
-        UserID,
-        MIN(DateOfPayment) AS registration_date
-    FROM Subscription
-    GROUP BY UserID
-    HAVING date_part('month', MIN(DateOfPayment)) = 1
-)
-SELECT
-    u.name,
-    COUNT(f.UserID) > 0 AS has_friend,
-    r.registration_date
-FROM Registrations r
-JOIN Users u ON r.UserID = u.UserID
-LEFT JOIN Friend f ON u.UserID = f.UserID OR u.UserID = f.FriendID
-GROUP BY u.UserID, u.name, r.registration_date
-ORDER BY u.name ASC;
-
-WITH RECURSIVE FriendChain AS (
-    SELECT
-        u.name,
-        u.UserID AS user_id,
-        f.FriendID AS friend_id
-    FROM Users u
-    LEFT JOIN Friend f ON u.UserID = f.UserID
-    WHERE u.UserID = 20
-    UNION ALL
-    SELECT
-        u.name,
-        u.UserID AS user_id,
-        f.FriendID AS friend_id
-    FROM FriendChain fc
-    JOIN Users u ON fc.friend_id = u.UserID
-    LEFT JOIN Friend f ON u.UserID = f.UserID
-)
-SELECT
-    name,
-    user_id,
-    friend_id
-FROM FriendChain;
-
-WITH FirstSubscriptions AS (
-    SELECT
-        UserID,
-        MIN(DateOfPayment) AS first_date
-    FROM Subscription
-    GROUP BY UserID
-)
-SELECT
-    w.week,
-    (
-        SELECT COUNT(*)
-        FROM FirstSubscriptions fs
-        WHERE date_part('week', fs.first_date) = w.week
-    ) AS new_customers,
-    (
-        SELECT COUNT(*)
-        FROM Subscription s
-        JOIN FirstSubscriptions fs ON s.UserID = fs.UserID
-        WHERE s.DateOfPayment > fs.first_date
-          AND date_part('week', s.DateOfPayment) = w.week
-    ) AS kept_customers,
-    (
-        SELECT COUNT(*)
-        FROM Post p
-        WHERE date_part('week', p.Timestamp) = w.week
-    ) AS activity
-FROM generate_series(1, 30) AS w(week)
-ORDER BY w.week ASC;
